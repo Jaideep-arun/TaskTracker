@@ -17,13 +17,13 @@ CREATE TABLE TICKETS(
     create_datetime DATETIME,
     last_modified_datetime DATETIME
 );
-
-CREATE TABLE Comment(
+DROP TABLE comments;
+CREATE TABLE Comments(
     comment_id VARCHAR(20) PRIMARY KEY,
     ticket_id VARCHAR(20),
     user_id VARCHAR(20),
     message VARCHAR(200),
-    FOREIGN KEY (ticket_id) REFERENCES Ticket(ticket_id)
+    FOREIGN KEY (ticket_id) REFERENCES Tickets(ticket_id)
 );
 
 CREATE TABLE Category(
@@ -31,7 +31,7 @@ CREATE TABLE Category(
     category_desc VARCHAR(20)
 );
 CREATE TABLE Sub_Category(
-    sub_category_id VARCHAR(20) PRIMARY KEY,
+    sub_category_id VARCHAR(50) PRIMARY KEY,
     category_id VARCHAR(20),
     sub_category_desc VARCHAR(50)
     
@@ -48,11 +48,11 @@ CREATE TABLE User(
 )
 
 INSERT INTO Category values 
-    ('CAT1','Hardware'),
-    ('CAT2','Software'),
-    ('CAT3','Access_Management'),
-    ('CAT4','Status'),
-    ('CAT5','Priority');
+    ('Hardware','Hardware'),
+    ('Software','Software'),
+    ('Access_Management','Access_Management'),
+    ('Status','Status'),
+    ('Priority','Priority');
 
 INSERT INTO Sub_Category VALUES
     ('SubCAT1','CAT1','Allocate_Laptop'),
@@ -60,26 +60,26 @@ INSERT INTO Sub_Category VALUES
     ('SubCAT1','CAT1','Allocate_Laptop');
 
 INSERT INTO Sub_Category VALUES
-    ('SubCAT1', 'CAT1', 'Allocate_Laptop'),
-    ('SubCAT2', 'CAT1', 'Allocate_CAT1'),
-    ('SubCAT3', 'CAT1', 'Hardware_replacement'),
-    ('SubCAT4', 'CAT2', 'Software_Installation'),
-    ('SubCAT5', 'CAT2', 'Antivirus'),
-    ('SubCAT6', 'CAT2', 'Email_Password_update'),
-    ('SubCAT7', 'CAT2', 'Laptop_Slowness_issue'),
-    ('SubCAT8', 'CAT2', 'Software_Issue'),
-    ('SubCAT9', 'CAT3', 'Software_access'),
-    ('SubCAT10', 'CAT3', 'Wifi_Access'),
-    ('SubCAT11', 'CAT3', 'Database_Access'),
-    ('SubCAT12', 'CAT3', 'VPN_Access'),
-    ('SubCAT13', 'CAT4', 'Open'),
-    ('SubCAT14', 'CAT4', 'Assigned'),
-    ('SubCAT15', 'CAT4', 'In Progress'),
-    ('SubCAT16', 'CAT4', 'Completed'),
-    ('SubCAT17', 'CAT5', 'Low'),
-    ('SubCAT18', 'CAT5', 'Medium'),
-    ('SubCAT19', 'CAT5', 'High'),
-    ('SubCAT20', 'CAT5', 'Critical');
+    ('Allocate_Laptop', 'Hardware', 'Allocate_Laptop'),
+    ('Allocate_Hardware', 'Hardware', 'Allocate_Hardware'),
+    ('Hardware_replacement', 'Hardware', 'Hardware_replacement'),
+    ('Software_Installation', 'Software', 'Software_Installation'),
+    ('Antivirus', 'Software', 'Antivirus'),
+    ('Email_Password_update', 'Software', 'Email_Password_update'),
+    ('Laptop_Slowness_issue', 'Software', 'Laptop_Slowness_issue'),
+    ('Software_Issue', 'Software', 'Software_Issue'),
+    ('Software_access', 'Access_Management', 'Software_access'),
+    ('Wifi_Access', 'Access_Management', 'Wifi_Access'),
+    ('Database_Access', 'Access_Management', 'Database_Access'),
+    ('VPN_Access', 'Access_Management', 'VPN_Access'),
+    ('Open', 'Status', 'Open'),
+    ('Assigned', 'Status', 'Assigned'),
+    ('In_Progress', 'Status', 'In_Progress'),
+    ('Completed', 'Status', 'Completed'),
+    ('Low', 'Priority', 'Low'),
+    ('Medium', 'Priority', 'Medium'),
+    ('High', 'Priority', 'High'),
+    ('Critical', 'Priority', 'Critical');
 
 INSERT INTO Admin_team VALUES
     ('Admin1','Jaideep','jai@admin.com'),
@@ -91,15 +91,50 @@ INSERT INTO User VALUES
 
 INSERT INTO TICKETS VALUES(
     'T1_2024',
-    'CAT1',
-    'SubCAT1',
+    'Hardware',
+    'Allocate_Laptop',
     'Admin1',
     'User1',
     'Laptop Allocation',
     'Please allocate a new laptop for me as my old laptop is crashing often',
-    'SubCAT13',
-    'SubCAT19',
+    'Open',
+    'High',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
 SELECT * FROM tickets
+
+SELECT * FROM tickets WHERE ticket_id = "T1_2024"
+
+INSERT INTO comments VALUES(
+   'ComTic1',
+   'T1_2024',
+    'User1',
+    'Change Laptop'
+);
+UPDATE tickets SET assignee_Id='Admin2' , last_modified_datetime = CURRENT_TIMESTAMP WHERE ticket_id = 'T1_2024';
+--from Java test
+UPDATE tickets SET assignee_Id='Admin1' WHERE ticket_id = 'T1_2024';
+
+DELETE FROM tickets WHERE ticket_id = 'T1_2024';
+
+INSERT INTO TICKETS VALUES(
+    'T1_2024',
+    'Hardware',
+    'Allocate_Laptop',
+    'Admin1',
+    'User1',
+    'Laptop Allocation',
+    'Please allocate a new laptop for me as my old laptop is crashing often',
+    'Open',
+    'High',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);
+
+INSERT INTO comments VALUES
+    ('com1','T1_2024','Admin1','A new Laptop will be given by tomorrow');
+
+select count (message) from comments where ticket_id='T1_2024';
+
+select message from comments where ticket_id='T1_2024'
