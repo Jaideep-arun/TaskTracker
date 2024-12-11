@@ -2,12 +2,12 @@ CREATE DATABASE trackerDB;
 
 USE trackerDB;
 
-DROP TABLE Sub_Category;
+DROP TABLE tickets;
 
 CREATE TABLE TICKETS(
     ticket_id VARCHAR(20) PRIMARY KEY,
     category_id VARCHAR(20),
-    sub_category_id VARCHAR(20),
+    sub_category_id VARCHAR(50),
     assignee_Id VARCHAR(20),
     reported_Id VARCHAR(20),
     subject VARCHAR(50),
@@ -116,7 +116,7 @@ UPDATE tickets SET assignee_Id='Admin2' , last_modified_datetime = CURRENT_TIMES
 --from Java test
 UPDATE tickets SET assignee_Id='Admin1' WHERE ticket_id = 'T1_2024';
 
-DELETE FROM tickets WHERE ticket_id = 'T1_2024';
+DELETE FROM tickets WHERE ticket_id = 'T2_2024';
 
 INSERT INTO TICKETS VALUES(
     'T1_2024',
@@ -137,4 +137,10 @@ INSERT INTO comments VALUES
 
 select count (message) from comments where ticket_id='T1_2024';
 
-select message from comments where ticket_id='T1_2024'
+select message from comments where ticket_id='T1_2024';
+
+INSERT INTO TICKETS VALUES('T2_2024','Software','Laptop_Slowness_issue','null','User1','Laptop Slow','Laptop is very slow and running very hot','Critical','Open',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+
+ALTER Table tickets MODIFY COLUMN sub_category_id VARCHAR(50);
+
+
