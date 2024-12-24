@@ -22,6 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/IT")
 public class ITRoutes {
 
+    public static final String TICKET_ID = "Ticket_id";
+    public static final String CATEGORY_ID = "category_id";
+    public static final String SUB_CATEGORY_ID = "sub_category_id";
+    public static final String SUBJECT = "subject";
+    public static final String PRIORITY_ID = "priority_id";
+    public static final String STATUS_ID = "status_id";
+    public static final String ASSIGNEE_ID = "assignee_Id";
     @Autowired
     DataSource dataSource;
 
@@ -33,7 +40,7 @@ public class ITRoutes {
         return "Hi World";
     }
     @GetMapping("/FetchTickets")
-    public List<JSONObject> FetchTickets() throws SQLException {
+    public List<JSONObject> fetchTickets() throws SQLException {
         connection = dataSource.getConnection();
         statement = connection.prepareStatement("select * from tickets");
         ResultSet data = statement.executeQuery();
@@ -43,14 +50,14 @@ public class ITRoutes {
         if (data.isBeforeFirst()){
             while (data.next()) {
                 JSONObject object = new JSONObject();
-                object.put("Ticket_id", data.getString("ticket_id"));
-                object.put("category_id", data.getString("category_id"));
-                object.put("sub_category_id", data.getString("sub_category_id"));
-                object.put("subject", data.getString("subject"));
-                object.put("priority_id", data.getString("priority_id"));
-                object.put("status_id", data.getString("status_id"));
-                object.put("assignee_Id", data.getString("assignee_Id"));
-                object.put("Link","http://localhost:8080/IT/FetchTickets/ticket?ticket_id="+data.getString("ticket_id"));
+                object.put(TICKET_ID, data.getString(TICKET_ID));
+                object.put(CATEGORY_ID, data.getString(CATEGORY_ID));
+                object.put(SUB_CATEGORY_ID, data.getString(SUB_CATEGORY_ID));
+                object.put(SUBJECT, data.getString(SUBJECT));
+                object.put(PRIORITY_ID, data.getString(PRIORITY_ID));
+                object.put(STATUS_ID, data.getString(STATUS_ID));
+                object.put(ASSIGNEE_ID, data.getString(ASSIGNEE_ID));
+                object.put("Link","http://localhost:8080/IT/FetchTickets/ticket?ticket_id="+data.getString(TICKET_ID));
                 jsonObjectList.add(object);
             }
             connection.close();
@@ -65,7 +72,7 @@ public class ITRoutes {
     }
 
     @GetMapping("/FetchTickets/ticket")
-    public List<JSONObject> FetchTicketsDetail(@RequestParam String ticket_id) throws SQLException {
+    public List<JSONObject> fetchTicketsDetail(@RequestParam String ticket_id) throws SQLException {
         PreparedStatement CommentStatement = null;
         connection = dataSource.getConnection();
         String query = "select * from tickets where ticket_id ='" + ticket_id +"'";
@@ -79,14 +86,14 @@ public class ITRoutes {
         if (data.isBeforeFirst()){
             data.next();
             JSONObject object = new JSONObject();
-            object.put("Ticket_id", data.getString("ticket_id"));
-            object.put("category_id", data.getString("category_id"));
-            object.put("sub_category_id", data.getString("sub_category_id"));
-            object.put("subject", data.getString("subject"));
+            object.put(TICKET_ID, data.getString(TICKET_ID));
+            object.put(CATEGORY_ID, data.getString(CATEGORY_ID));
+            object.put(SUB_CATEGORY_ID, data.getString(SUB_CATEGORY_ID));
+            object.put(SUBJECT, data.getString(SUBJECT));
             object.put("description",data.getString("description"));
-            object.put("priority_id", data.getString("priority_id"));
-            object.put("status_id", data.getString("status_id"));
-            object.put("assignee_Id", data.getString("assignee_Id"));
+            object.put(PRIORITY_ID, data.getString(PRIORITY_ID));
+            object.put(STATUS_ID, data.getString(STATUS_ID));
+            object.put(ASSIGNEE_ID, data.getString(ASSIGNEE_ID));
             object.put("reported_Id", data.getString("reported_Id"));
             object.put("create_datetime", data.getString("create_datetime"));
             object.put("last_modified_datetime", data.getString("last_modified_datetime"));
@@ -134,9 +141,9 @@ public class ITRoutes {
         ResultSet fetchStatus = connection.prepareStatement("select status_id from tickets where ticket_id='"+ticket_id+"'").executeQuery();
         fetchStatus.next();
         int result = statement.executeUpdate() ;
-        connection.close();
+
         if (result == 1)
-            return "Status Updated from "+ fetchStatus.getString("status_id")+" to "+status_id;
+            return "Status Updated from "+ fetchStatus.getString(STATUS_ID)+" to "+status_id;
         else
             return "Unable to Update";
     }
@@ -145,8 +152,8 @@ public class ITRoutes {
     @PostMapping("/ticket/addComment")
     public String addComment(@RequestParam String  ticket_id, String user_id ,@RequestBody String comment ) throws SQLException {
         connection = dataSource.getConnection();
-        int exists = connection.prepareStatement("select count(*) from Admin_team where admin_id='"+user_id).executeUpdate();
-        if (exists == 1) {
+        boolean exists = connection.prepareStatement("select admin_id from Admin_team where admin_id='"+user_id+"'").executeQuery().isBeforeFirst();
+        if (exists) {
             ResultSet fetchStatus =
                 connection.prepareStatement("select count(message) from comments where ticket_id='" + ticket_id + "'")
                     .executeQuery();

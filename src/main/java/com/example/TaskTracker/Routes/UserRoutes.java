@@ -23,14 +23,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/User")
 public class UserRoutes {
+    public static final String SUB_CATEGORY_ID = "sub_category_id";
+    public static final String CATEGORY_ID = "category_id";
+    public static final String SUBJECT = "subject";
+    public static final String DESCRIPTION = "description";
+    public static final String STATUS_ID = "status_id";
+    public static final String  ASSIGNEE_ID = "assignee_Id";
+    public static final String TICKET_ID = "ticket_id";
+    public static final String PRIORITY_ID = "priority_id";
     @Autowired
-    DataSource dataSource;
+    private DataSource dataSource;
 
     private Connection connection = null;
     private PreparedStatement statement = null;
 
     @GetMapping("/HelloWorld")
-    public String HelloWorld(){
+    public String helloWorld(){
         return "Hello World";
     }
 
@@ -46,14 +54,14 @@ public class UserRoutes {
 
         String ticket_id = "T"+val+"_"+year;
         String query = "INSERT INTO TICKETS VALUES('"+ticket_id+"','"
-                        +ticket.get("category_id")+"','"
-                        +ticket.get("sub_category_id")+"','"
-                        +ticket.get("assignee_Id")+"','"
+                        +ticket.get(CATEGORY_ID)+"','"
+                        +ticket.get(SUB_CATEGORY_ID)+"','"
+                        +ticket.get(ASSIGNEE_ID)+"','"
                         +user_id+"','"
-                        +ticket.get("subject")+"','"
-                        +ticket.get("description")+"',"
+                        +ticket.get(SUBJECT)+"','"
+                        +ticket.get(DESCRIPTION)+"',"
                         +"'Open','"
-                        +ticket.get("status_id")+"',"
+                        +ticket.get(STATUS_ID)+"',"
                         +"CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)";
 
         statement = connection.prepareStatement(query);
@@ -64,7 +72,7 @@ public class UserRoutes {
     }
 
     @GetMapping("/FetchTickets")
-    public List<JSONObject> FetchTickets(@RequestParam String  user_id) throws SQLException {
+    public List<JSONObject> fetchTickets(@RequestParam String  user_id) throws SQLException {
         connection = dataSource.getConnection();
         statement = connection.prepareStatement("select * from tickets where reported_Id='"+user_id+"'");
         ResultSet data = statement.executeQuery();
@@ -73,20 +81,21 @@ public class UserRoutes {
         if (data.isBeforeFirst()){
             while (data.next()) {
                 JSONObject object = new JSONObject();
-                object.put("Ticket_id", data.getString("ticket_id"));
-                object.put("category_id", data.getString("category_id"));
-                object.put("sub_category_id", data.getString("sub_category_id"));
-                object.put("subject", data.getString("subject"));
-                object.put("priority_id", data.getString("priority_id"));
-                object.put("status_id", data.getString("status_id"));
-                object.put("assignee_Id", data.getString("assignee_Id"));
-                object.put("Link","http://localhost:8080/User/"+data.getString("ticket_id"));
+                object.put("Ticket_id", data.getString(TICKET_ID));
+                object.put(CATEGORY_ID, data.getString(CATEGORY_ID));
+                object.put(SUB_CATEGORY_ID, data.getString(SUB_CATEGORY_ID));
+                object.put(SUBJECT, data.getString(SUBJECT));
+                object.put(PRIORITY_ID, data.getString(PRIORITY_ID));
+                object.put(STATUS_ID, data.getString(STATUS_ID));
+                object.put(ASSIGNEE_ID, data.getString(ASSIGNEE_ID));
+                object.put("Link","http://localhost:8080/User/FetchTickets/ticket?ticket_id="+data.getString(TICKET_ID));
 
 
                 jsonObjectList.add(object);
 
-                connection.close();
+
             }
+            connection.close();
             return jsonObjectList;
         }
          else
@@ -96,8 +105,12 @@ public class UserRoutes {
     @PostMapping("/ticket/addComment")
     public String addComment(@RequestParam String  ticket_id, String user_id ,@RequestBody String comment ) throws SQLException {
         connection = dataSource.getConnection();
-        int exists = connection.prepareStatement("select count(user_id) from User where user_id='"+user_id+"'").getFetchSize();
-        if (exists == 1) {
+        ResultSet user = connection.prepareStatement("select user_id from User where user_id='"+user_id+"'").executeQuery();
+
+        boolean fi = user.isBeforeFirst();
+
+
+        if (user.isBeforeFirst()) {
             ResultSet fetchStatus =
                 connection.prepareStatement("select count(message) from comments where ticket_id='" + ticket_id + "'")
                     .executeQuery();
@@ -116,66 +129,48 @@ public class UserRoutes {
     }
 
     @GetMapping("/FetchTickets/ticket")
-    public List<JSONObject> FetchTicketsDetail(@RequestParam String ticket_id) throws SQLException {
-
+    public List<JSONObject> fetchTicketsDetail(@RequestParam String ticket_id) throws SQLException {
         PreparedStatement CommentStatement = null;
+        connection = dataSource.getConnection();
+        String query = "select * from tickets where ticket_id ='" + ticket_id +"'";
+        String commentsQuery = "select * from Comments where ticket_id ='"+ ticket_id + "'";
+        statement = connection.prepareStatement(query);
+        CommentStatement = connection.prepareStatement(commentsQuery);
+        ResultSet comments = CommentStatement.executeQuery();
+        ResultSet data = statement.executeQuery();
 
-            connection = dataSource.getConnection();
-            String query = "select * from tickets where ticket_id ='" + ticket_id +"'";
-            String commentsQuery = "select * from Comments where ticket_id ='"+ ticket_id + "'";
-            statement = connection.prepareStatement(query);
-            ResultSet data = statement.executeQuery();
+        List<JSONObject> jsonObjectList = new ArrayList<>();
+        if (data.isBeforeFirst()){
             data.next();
-            int val = data.getFetchSize();
-            if(data.getFetchSize()==1) {
-                CommentStatement = connection.prepareStatement(commentsQuery);
-                ResultSet comments = CommentStatement.executeQuery();
-                List<JSONObject> jsonObjectList = new ArrayList<>();
-
-                if (data.isBeforeFirst()) {
-                    data.next();
-                    JSONObject object = new JSONObject();
-                    object.put("Ticket_id", data.getString("ticket_id"));
-                    object.put("category_id", data.getString("category_id"));
-                    object.put("sub_category_id", data.getString("sub_category_id"));
-                    object.put("subject", data.getString("subject"));
-                    object.put("description", data.getString("description"));
-                    object.put("priority_id", data.getString("priority_id"));
-                    object.put("status_id", data.getString("status_id"));
-                    object.put("assignee_Id", data.getString("assignee_Id"));
-                    object.put("reported_Id", data.getString("reported_Id"));
-                    object.put("create_datetime", data.getString("create_datetime"));
-                    object.put("last_modified_datetime", data.getString("last_modified_datetime"));
-
-                    if (comments.isBeforeFirst()) {
-                        List<String> commentsinTicket = new ArrayList<>();
-                        while (comments.next()) {
-                            String commentInTicket =
-                                comments.getString("user_id") + ":" + comments.getString("message");
-                            commentsinTicket.add(commentInTicket);
-                        }
-                        object.put("Comments", commentsinTicket);
-                    }
-                    jsonObjectList.add(object);
-                    connection.close();
-                    return jsonObjectList;
-                } else {
-                    JSONObject jsonObject = new JSONObject();
-                    List<JSONObject> list = new ArrayList<>();
-                    jsonObject.put("Error", "Not Exists blabla");
-                    list.add(jsonObject);
-                    connection.close();
-                    return list;
-
+            JSONObject object = new JSONObject();
+            object.put(TICKET_ID, data.getString(TICKET_ID));
+            object.put(CATEGORY_ID, data.getString(CATEGORY_ID));
+            object.put(SUB_CATEGORY_ID, data.getString(SUB_CATEGORY_ID));
+            object.put(SUBJECT, data.getString(SUBJECT));
+            object.put("description",data.getString("description"));
+            object.put(PRIORITY_ID, data.getString(PRIORITY_ID));
+            object.put(STATUS_ID, data.getString(STATUS_ID));
+            object.put(ASSIGNEE_ID, data.getString(ASSIGNEE_ID));
+            object.put("reported_Id", data.getString("reported_Id"));
+            object.put("create_datetime", data.getString("create_datetime"));
+            object.put("last_modified_datetime", data.getString("last_modified_datetime"));
+            if(comments.isBeforeFirst()){
+                List<String> commentsinTicket = new ArrayList<>();
+                while (comments.next()){
+                    String commentInTicket = comments.getString("user_id")+":"+comments.getString("message");
+                    commentsinTicket.add(commentInTicket);
                 }
-            }else {
-                JSONObject jsonObject = new JSONObject();
-                List<JSONObject> list = new ArrayList<>();
-                jsonObject.put("Error", "Not Exists");
-                list.add(jsonObject);
-                connection.close();
-                return list;
+                object.put("Comments",commentsinTicket);
             }
-
+            jsonObjectList.add(object);
+            connection.close();
+            return jsonObjectList;
+        } else {
+            JSONObject jsonObject = new JSONObject();
+            List<JSONObject> list = new ArrayList<>();
+            jsonObject.put("Error", "Not Exists in for ticket");
+            list.add(jsonObject);
+            return list;
+        }
     }
 }

@@ -24,6 +24,7 @@ CREATE TABLE Comments(
     user_id VARCHAR(20),
     message VARCHAR(200),
     FOREIGN KEY (ticket_id) REFERENCES Tickets(ticket_id)
+    
 );
 
 CREATE TABLE Category(
@@ -142,5 +143,22 @@ select message from comments where ticket_id='T1_2024';
 INSERT INTO TICKETS VALUES('T2_2024','Software','Laptop_Slowness_issue','null','User1','Laptop Slow','Laptop is very slow and running very hot','Critical','Open',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
 
 ALTER Table tickets MODIFY COLUMN sub_category_id VARCHAR(50);
+
+ALTER TABLE tickets 
+    ADD Foreign Key (category_id) REFERENCES Category(category_id),
+    ADD Foreign Key (sub_category_id) REFERENCES Sub_Category(sub_category_id),
+    ADD Foreign Key (reported_Id) REFERENCES User(user_id);
+    --ADD Foreign Key (assignee_Id) REFERENCES Admin_team(admin_id)
+
+ALTER TABLE comments
+    ADD Foreign Key (user_id) REFERENCES admin_team(admin_id);
+
+DROP TABLE comments;
+
+select * from tickets where ticket_id ='T1_2024';
+
+SELECT * FROM 
+    `user`;
+select * from User where user_id='User1'
 
 
