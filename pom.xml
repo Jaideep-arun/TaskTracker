@@ -56,13 +56,13 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jdbc</artifactId>
 			<!-- Specify the required version here -->
-			<version>3.4.0</version>
+			<version>3.4.6</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
-			<version>3.4.0</version>
+			<version>3.4.6</version>
 		</dependency>
 
 		<!-- JSON Simple -->
